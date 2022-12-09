@@ -2,30 +2,30 @@
 
 module One where
 
-import qualified Data.ByteString.Lazy as BL
+import Data.List (sortOn)
+import Data.Ord (Down)
 import qualified Data.Text as T
+import qualified Data.Text.IO as TIO
 import Data.Text.Read (decimal)
-import Data.List (maximumBy)
 
 run :: IO Integer
 run = do
-  contents <- BL.readFile "inputs/One.txt"
-  let textCont = fromRight "" . decodeUtf8' . BL.toStrict $ contents
-  return . findHighestCalories . parseAndAddCalories . indexGroup . T.splitOn "\n\n" $ textCont
+  contents <- TIO.readFile "inputs/One.txt"
+  return . sumTop3Calories . parseAndAddCalories . indexGroup . T.splitOn "\n\n" $ contents
 
 indexGroup :: [Text] -> [(Integer, Text)]
-indexGroup = zip [0..]
+indexGroup = zip [0 ..]
 
 parseAndAddCalories :: [(Integer, Text)] -> [(Integer, Integer)]
 parseAndAddCalories = map (\(index, text) -> (index, parseAndSum $ T.words text))
   where
     parseAndSum :: [Text] -> Integer
     parseAndSum = foldl' parseAndSum' 0
-    
+
     parseAndSum' :: Integer -> Text -> Integer
     parseAndSum' total textNum = case decimal textNum of
       Right (num, _) -> num + total
       Left _ -> total
 
-findHighestCalories :: [(Integer, Integer)] -> Integer
-findHighestCalories = snd . maximumBy (\(_, elf1Calories) (_, elf2Calories) -> compare elf1Calories elf2Calories)
+sumTop3Calories :: [(Integer, Integer)] -> Integer
+sumTop3Calories = sum . map snd . take 3 . sortOn (Down . snd)
