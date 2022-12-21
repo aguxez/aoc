@@ -6,7 +6,7 @@ import Data.List.Split (chunksOf)
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 
-data Choice = Rock | Paper | Scissors deriving (Eq, Show)
+data Choice = Rock | Paper | Scissors deriving (Eq)
 
 run :: IO Integer
 run = do
@@ -15,8 +15,24 @@ run = do
   return . sum . map roundOutcome $ choices
 
 roundOutcome :: [Choice] -> Integer
-roundOutcome [opponentChoice, ourChoice] = pointsFromChoice ourChoice + pointsFromOutcome (compare ourChoice opponentChoice)
+roundOutcome [opponentChoice, ourInitialChoice] = pointsFromChoice ourFinalChoice + pointsFromOutcome (compare ourFinalChoice opponentChoice)
   where
+    ourFinalChoice :: Choice
+    ourFinalChoice = case ourInitialChoice of
+      Rock -> loseRound opponentChoice
+      Paper -> opponentChoice
+      Scissors -> winRound opponentChoice
+
+    loseRound :: Choice -> Choice
+    loseRound Paper = Rock
+    loseRound Rock = Scissors
+    loseRound Scissors = Paper
+
+    winRound :: Choice -> Choice
+    winRound Paper = Scissors
+    winRound Rock = Paper
+    winRound Scissors = Rock
+
     pointsFromChoice :: Choice -> Integer
     pointsFromChoice Rock = 1
     pointsFromChoice Paper = 2
